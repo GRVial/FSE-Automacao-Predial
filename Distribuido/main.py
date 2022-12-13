@@ -4,7 +4,9 @@ import sys
 
 def main():
     jsonFile = sys.argv[1]
-    thread = SalaThread(Sala(jsonFile))
+    sala = Sala(jsonFile)
+    thread = SalaThread(sala)
+    sala.sistemaAlarme = False
     thread.start()
 
 if __name__ == '__main__':

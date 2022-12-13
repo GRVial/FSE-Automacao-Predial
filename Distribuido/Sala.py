@@ -12,6 +12,7 @@ class Sala:
     temperatura : float
     umidade : float
     tempo : float
+    sistemaAlarme : bool
 
     def __init__(self, jsonFile:str) -> None:
         GPIO.setmode(GPIO.BCM)
@@ -64,6 +65,7 @@ class Sala:
         self.temperatura = 0.0
         self.umidade =  0.0
         self.tempo = 0.0
+        self.sistemaAlarme = False
 
     def ligaX(self, gpio:str) -> None:
         GPIO.output(gpio, GPIO.HIGH)
@@ -97,7 +99,7 @@ class Sala:
         print(f'Pessoas: {self.pessoas}')
 
     def presencaLuz(self) -> None:
-        if GPIO.input(self.input['SPres']):
+        if not self.sistemaAlarme and GPIO.input(self.input['SPres']):
             self.ligaX(self.output['L_01'])
             self.ligaX(self.output['L_02'])
             self.tempo = time()
@@ -107,6 +109,13 @@ class Sala:
 
     def fumacaAlarme(self) -> None:
         GPIO.output(self.output['AL_BZ'], GPIO.HIGH if GPIO.input(self.input['SFum']) else GPIO.LOW)
+
+    def checaAlarme(self) -> None:
+        if GPIO.input(self.input['SPres']) or GPIO.input(self.input['SJan']) or GPIO.input(self.input['SPor']) or GPIO.input(self.input['SFum']):
+            GPIO.output(self.output['AL_BZ'], GPIO.HIGH)
+        else:
+            GPIO.output(self.output['AL_BZ'], GPIO.LOW)
+
 
 
 class SalaThread(threading.Thread):
@@ -119,4 +128,9 @@ class SalaThread(threading.Thread):
             self.sala.getDHT22()
             self.sala.contaPessoa()
             self.sala.presencaLuz()
-            self.sala.fumacaAlarme()
+            # alarme ligado
+            if self.sala.sistemaAlarme:
+                self.sala.checaAlarme()
+            # alarme desligado
+            else:
+                self.sala.fumacaAlarme()
