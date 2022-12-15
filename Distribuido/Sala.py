@@ -1,8 +1,9 @@
 import json
 import RPi.GPIO as GPIO
-import Adafruit_DHT as DHT
+import board
+import adafruit_dht
 import threading
-from time import time
+from time import time, sleep
 
 class Sala:
     input : dict
@@ -13,6 +14,7 @@ class Sala:
     umidade : float
     tempo : float
     sistemaAlarme : bool
+    nome : str
 
     def __init__(self, jsonFile:str) -> None:
         GPIO.setmode(GPIO.BCM)
@@ -52,7 +54,8 @@ class Sala:
                 self.input['SC_OUT'] = i['gpio']
 
         self.estado = {k: False for k in self.output}
-        self.dht22 = cfg['sensor_temperatura'][0]['gpio']
+        dht22 = cfg['sensor_temperatura'][0]['gpio']
+        self.nome = cfg['nome']
 
         for e in self.output.values():
             GPIO.setup(e, GPIO.OUT)
@@ -66,6 +69,7 @@ class Sala:
         self.umidade =  0.0
         self.tempo = 0.0
         self.sistemaAlarme = False
+        self.dhtDevice = adafruit_dht.DHT22(board.D18) if self.dht22 == 18 else adafruit_dht.DHT22(board.D4)
 
     def ligaX(self, gpio:str) -> None:
         GPIO.output(gpio, GPIO.HIGH)
@@ -84,11 +88,10 @@ class Sala:
             self.ligaX(e)
 
     def getDHT22(self) -> None:
-        gpio = self.dht22
-        self.umidade, self.temperatura = DHT.read(DHT.DHT22, gpio)
-        if self.umidade is not None and self.temperatura is not None:
+        try:
+            self.temperatura, self.umidade = self.dhtDevice.temperature, self.dhtDevice.humidity
             print(f'Temperatura: {self.temperatura:0.1f}\tUmidade: {self.umidade:0.1f}')
-        else:
+        except:
             print('Erro DHT22')
     
     def contaPessoa(self) -> None:
@@ -134,3 +137,4 @@ class SalaThread(threading.Thread):
             # alarme desligado
             else:
                 self.sala.fumacaAlarme()
+            sleep(0.1)

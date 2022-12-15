@@ -1,1 +1,0 @@
-ssh guilhermevial@164.41.98.26 -p 13508
