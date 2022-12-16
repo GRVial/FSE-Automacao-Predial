@@ -4,8 +4,9 @@ import board
 import adafruit_dht
 import threading
 from time import time, sleep
+import socket
 
-class Sala:
+class Sala(threading.Thread):
     input : dict
     output : dict
     estado : dict
@@ -15,8 +16,10 @@ class Sala:
     tempo : float
     sistemaAlarme : bool
     nome : str
+    addrCentral : tuple
 
     def __init__(self, jsonFile:str) -> None:
+        super().__init__()
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
 
@@ -54,7 +57,6 @@ class Sala:
                 self.input['SC_OUT'] = i['gpio']
 
         self.estado = {k: False for k in self.output}
-        dht22 = cfg['sensor_temperatura'][0]['gpio']
         self.nome = cfg['nome']
 
         for e in self.output.values():
@@ -68,8 +70,10 @@ class Sala:
         self.temperatura = 0.0
         self.umidade =  0.0
         self.tempo = 0.0
+        self.addrCentral = cfg['ip_servidor_central'], cfg['porta_servidor_central']
         self.sistemaAlarme = False
-        self.dhtDevice = adafruit_dht.DHT22(board.D18) if self.dht22 == 18 else adafruit_dht.DHT22(board.D4)
+        dht22 = cfg['sensor_temperatura'][0]['gpio']
+        self.dhtDevice = adafruit_dht.DHT22(board.D18, use_pulseio=False) if dht22 == 18 else adafruit_dht.DHT22(board.D4, use_pulseio=False)
 
     def ligaX(self, gpio:str) -> None:
         GPIO.output(gpio, GPIO.HIGH)
@@ -87,22 +91,24 @@ class Sala:
         for e in self.output:
             self.ligaX(e)
 
-    def getDHT22(self) -> None:
+    def getDHT22(self) -> tuple:
         try:
             self.temperatura, self.umidade = self.dhtDevice.temperature, self.dhtDevice.humidity
-            print(f'Temperatura: {self.temperatura:0.1f}\tUmidade: {self.umidade:0.1f}')
+            # print(f'Temperatura: {self.temperatura:0.1f}\tUmidade: {self.umidade:0.1f}')
         except:
             print('Erro DHT22')
+        return self.temperatura, self.umidade
     
     def contaPessoa(self) -> None:
         if GPIO.event_detected(self.input['SC_IN']):
             self.pessoas += 1
+            # print(f'Pessoas: {self.pessoas}')
         if GPIO.event_detected(self.input['SC_OUT'] and self.pessoas > 0):
             self.pessoas -= 1    
-        print(f'Pessoas: {self.pessoas}')
+            # print(f'Pessoas: {self.pessoas}')
 
     def presencaLuz(self) -> None:
-        if not self.sistemaAlarme and GPIO.input(self.input['SPres']):
+        if GPIO.input(self.input['SPres']):
             self.ligaX(self.output['L_01'])
             self.ligaX(self.output['L_02'])
             self.tempo = time()
@@ -119,22 +125,45 @@ class Sala:
         else:
             GPIO.output(self.output['AL_BZ'], GPIO.LOW)
 
+    def run(self):
+        while True:
+            # self.getDHT22()
+            # alarme ligado
+            if self.sistemaAlarme:
+                self.checaAlarme()
+            # alarme desligado
+            else:
+                self.contaPessoa()
+                self.presencaLuz()
+                self.fumacaAlarme()
+            sleep(0.1)
 
 
-class SalaThread(threading.Thread):
+class Conexao(threading.Thread):
+    sock : socket.socket
     def __init__(self, sala:Sala) -> None:
         super().__init__()
         self.sala = sala
 
+    def conectaCentral(self):
+        nome = self.sala.nome
+        self.sock = socket.create_connection(self.sala.addrCentral)
+        self.sock.send(nome.encode('utf-8'))
+
+    def sendState(self):
+        estados = self.sala.estado
+        for key, value in self.sala.input.items():
+            estados[key] = True if GPIO.input(value) else False
+        estados['temperatura'], estados['umidade'] = self.sala.getDHT22()
+        estados['pessoas'] = self.sala.pessoas
+        self.sock.send(json.dumps(estados).encode('utf-8'))
+
     def run(self):
         while True:
-            self.sala.getDHT22()
-            self.sala.contaPessoa()
-            self.sala.presencaLuz()
-            # alarme ligado
-            if self.sala.sistemaAlarme:
-                self.sala.checaAlarme()
-            # alarme desligado
-            else:
-                self.sala.fumacaAlarme()
-            sleep(0.1)
+            msg = self.sock.recv(1024).decode('utf-8').split()
+            if msg[0].upper() == 'LIGA':
+                for e in msg[1:]:
+                    self.sala.ligaX(self.sala.output[e])
+            if msg[0].upper() == 'DESLIGA':
+                for e in msg[1:]:
+                    self.sala.ligaX(self.sala.output[e])
