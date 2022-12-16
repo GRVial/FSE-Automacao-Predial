@@ -157,6 +157,7 @@ class Conexao(threading.Thread):
         estados['temperatura'], estados['umidade'] = self.sala.getDHT22()
         estados['pessoas'] = self.sala.pessoas
         self.sock.send(json.dumps(estados).encode('utf-8'))
+        print('Estado enviado!')
 
     def run(self):
         while True:

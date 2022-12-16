@@ -1,6 +1,6 @@
 from Sala import Sala, Conexao
 import sys
-from time import time
+from time import time, sleep
 
 def main():
     jsonFile = sys.argv[1]
@@ -13,8 +13,9 @@ def main():
     # loop principal
     hora = time()
     while True:
-        if time() == hora+2:
+        if time() >= hora+2:
             conn.sendState()
+            sleep(0.2)
             hora = time()
 
 

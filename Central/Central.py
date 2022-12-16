@@ -22,13 +22,12 @@ class Central(threading.Thread):
     def recvEstados(self) -> None:
         def recvEstado():
             while True:
-                for nome in list(self.sockets):
+                for nome in self.sockets.copy():
+                    print('dentro')
                     self.estados[nome] = json.loads(self.sockets[nome].recv(4096).decode('utf-8'))
                     print(f'{nome}:\n{self.estados[nome]}')
-        while not self.sockets:
-            pass
         t = threading.Thread(target=recvEstado)
-        t.run()
+        t.start()
 
     def run(self):
         while True:
