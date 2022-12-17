@@ -73,15 +73,30 @@ class Sala(threading.Thread):
         self.addrCentral = cfg['ip_servidor_central'], cfg['porta_servidor_central']
         self.sistemaAlarme = False
         dht22 = cfg['sensor_temperatura'][0]['gpio']
-        self.dhtDevice = adafruit_dht.DHT22(board.D18) if dht22 == 18 else adafruit_dht.DHT22(board.D4)
+        if dht22 == 18:
+            try:
+                self.dhtDevice = adafruit_dht.DHT22(board.D18)
+            except:
+                self.dhtDevice = adafruit_dht.DHT22(board.D18, use_pulseio=False)
+        elif dht22 == 4:
+            try:
+                self.dhtDevice = adafruit_dht.DHT22(board.D4)
+            except:
+                self.dhtDevice = adafruit_dht.DHT22(board.D4, use_pulseio=False)
 
     def ligaX(self, tag:str) -> None:
-        GPIO.output(self.output[tag], GPIO.HIGH)
-        self.estado[tag] = True
+        try:
+            GPIO.output(self.output[tag], GPIO.HIGH)
+            self.estado[tag] = True
+        except KeyError:
+            pass
 
     def desligaX(self, tag:str) -> None:
-        GPIO.output(self.output[tag], GPIO.LOW)
-        self.estado[tag] = False
+        try:
+            GPIO.output(self.output[tag], GPIO.LOW)
+            self.estado[tag] = False
+        except KeyError:
+            pass
 
     def desligaAll(self) -> None:
         for e in self.output:

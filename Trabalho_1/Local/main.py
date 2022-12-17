@@ -8,7 +8,7 @@ def main():
     i = Interface(c)
     while True:
         if c.sockets:
-            i.menuInicial()
+            i.menuInicial(True)
             
 
 if __name__ == '__main__':
