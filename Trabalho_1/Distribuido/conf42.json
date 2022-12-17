@@ -1,5 +1,5 @@
 {
-    "ip_servidor_central": "192.168.1.103",
+    "ip_servidor_central": "192.168.1.132",
     "porta_servidor_central": 10010,
     "ip_servidor_distribuido": "192.168.0.52",
     "porta_servidor_distribuido": 10200,
@@ -8,66 +8,66 @@
         {
             "type": "lampada",
             "tag": "Lâmpada 01",
-            "gpio": 26
+            "gpio": 18
         },
         {
             "type": "lampada",
             "tag": "Lâmpada 02",
-            "gpio": 19
+            "gpio": 23
         },
         {
             "type": "projetor",
             "tag": "Projetor Multimidia",
-            "gpio": 6
+            "gpio": 25
         },
         {
             "type": "ar-condicionado",
             "tag": "Ar-Condicionado (1º Andar)",
-            "gpio": 13
+            "gpio": 24
         },
         {
             "type": "alarme",
             "tag": "Sirene do Alarme",
-            "gpio": 5
+            "gpio": 8
         }
     ],
     "inputs": [
         {
           "type": "presenca",
           "tag": "Sensor de Presença",
-          "gpio": 0
+          "gpio": 7
         },
         {
             "type": "fumaca",
             "tag": "Sensor de Fumaça",
-            "gpio": 11
+            "gpio": 1
         },
         {
             "type": "janela",
             "tag": "Sensor de Janela",
-            "gpio": 9
+            "gpio": 12
         },
         {
             "type": "porta",
             "tag": "Sensor de Porta",
-            "gpio": 10
+            "gpio": 16
         },
         {
             "type": "contagem",
             "tag": "Sensor de Contagem de Pessoas Entrada",
-            "gpio": 22
+            "gpio": 20
         },
         {
             "type": "contagem",
             "tag": "Sensor de Contagem de Pessoas Saída",
-            "gpio": 27
+            "gpio": 21
         }
     ],
     "sensor_temperatura":[
         {
           "type": "dth22",
           "tag": "Sensor de Temperatura e Umidade",
-          "gpio": 18
+          "gpio": 4
         }
     ]
 }

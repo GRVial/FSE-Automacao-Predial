@@ -73,15 +73,15 @@ class Sala(threading.Thread):
         self.addrCentral = cfg['ip_servidor_central'], cfg['porta_servidor_central']
         self.sistemaAlarme = False
         dht22 = cfg['sensor_temperatura'][0]['gpio']
-        self.dhtDevice = adafruit_dht.DHT22(board.D18, use_pulseio=False) if dht22 == 18 else adafruit_dht.DHT22(board.D4, use_pulseio=False)
+        self.dhtDevice = adafruit_dht.DHT22(board.D18) if dht22 == 18 else adafruit_dht.DHT22(board.D4)
 
-    def ligaX(self, gpio:str) -> None:
-        GPIO.output(gpio, GPIO.HIGH)
-        self.estado[gpio] = True
+    def ligaX(self, tag:str) -> None:
+        GPIO.output(self.output[tag], GPIO.HIGH)
+        self.estado[tag] = True
 
-    def desligaX(self, gpio:str) -> None:
-        GPIO.output(gpio, GPIO.LOW)
-        self.estado[gpio] = False
+    def desligaX(self, tag:str) -> None:
+        GPIO.output(self.output[tag], GPIO.LOW)
+        self.estado[tag] = False
 
     def desligaAll(self) -> None:
         for e in self.output:
@@ -109,21 +109,25 @@ class Sala(threading.Thread):
 
     def presencaLuz(self) -> None:
         if GPIO.input(self.input['SPres']):
-            self.ligaX(self.output['L_01'])
-            self.ligaX(self.output['L_02'])
+            self.ligaX('L_01')
+            self.ligaX('L_02')
             self.tempo = time()
-        elif time() >= self.tempo + 15:
-            self.desligaX(self.output['L_01'])
-            self.desligaX(self.output['L_02'])
+        elif self.tempo is not None and time() >= self.tempo + 15:
+            self.desligaX('L_01')
+            self.desligaX('L_02')
+            self.tempo = None
 
     def fumacaAlarme(self) -> None:
-        GPIO.output(self.output['AL_BZ'], GPIO.HIGH if GPIO.input(self.input['SFum']) else GPIO.LOW)
+        if GPIO.input(self.input['SFum']):
+            self.ligaX('AL_BZ')
+        else:
+            self.desligaX('AL_BZ')
 
     def checaAlarme(self) -> None:
         if GPIO.input(self.input['SPres']) or GPIO.input(self.input['SJan']) or GPIO.input(self.input['SPor']) or GPIO.input(self.input['SFum']):
-            GPIO.output(self.output['AL_BZ'], GPIO.HIGH)
+            self.ligaX('AL_BZ')
         else:
-            GPIO.output(self.output['AL_BZ'], GPIO.LOW)
+            self.desligaX('AL_BZ')
 
     def run(self):
         while True:
@@ -151,7 +155,7 @@ class Conexao(threading.Thread):
         self.sock.send(nome.encode('utf-8'))
 
     def sendState(self):
-        estados = self.sala.estado
+        estados = self.sala.estado.copy()
         for key, value in self.sala.input.items():
             estados[key] = True if GPIO.input(value) else False
         estados['temperatura'], estados['umidade'] = self.sala.getDHT22()
@@ -161,10 +165,20 @@ class Conexao(threading.Thread):
 
     def run(self):
         while True:
-            msg = self.sock.recv(1024).decode('utf-8').split()
-            if msg[0].upper() == 'LIGA':
-                for e in msg[1:]:
-                    self.sala.ligaX(self.sala.output[e])
-            if msg[0].upper() == 'DESLIGA':
-                for e in msg[1:]:
-                    self.sala.ligaX(self.sala.output[e])
+            msg = self.sock.recv(1024).decode('utf-8')
+            if msg.upper() == 'LIGA ALL':
+                self.sala.ligaAll()
+            elif msg.upper() == 'DESLIGA ALL':
+                self.sala.desligaAll()
+            elif msg.upper() == 'LIGA SISTEMA ALARME':
+                self.sala.sistemaAlarme = True
+            elif msg.upper() == 'DESLIGA SISTEMA ALARME':
+                self.sala.sistemaAlarme = False
+            else:
+                msg = msg.split()
+                if msg[0].upper() == 'LIGA':
+                    for e in msg[1:]:
+                        self.sala.ligaX(e)
+                elif msg[0].upper() == 'DESLIGA':
+                    for e in msg[1:]:
+                        self.sala.desligaX(e)

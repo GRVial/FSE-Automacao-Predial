@@ -8,7 +8,6 @@ def main():
     conn = Conexao(sala)
     conn.conectaCentral()
     conn.start()
-    sala.sistemaAlarme = True
     sala.start()
     # loop principal
     hora = time()
