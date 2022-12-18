@@ -1,5 +1,0 @@
-ssh guilhermevial@164.41.98.16 -p 13508
-ssh guilhermevial@164.41.98.26 -p 13508
-
-http://164.41.98.25:443/dashboard/8afcf450-6ba6-11ed-ae25-47f3a7e21eba?publicId=ba042a80-0322-11ed-9f25-414fbaf2b065
-http://164.41.98.25:443/dashboard/04f3c4c0-6c63-11ed-ae25-47f3a7e21eba?publicId=ba042a80-0322-11ed-9f25-414fbaf2b065

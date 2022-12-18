@@ -53,9 +53,9 @@ class Central(threading.Thread):
             self.sendData('liga L_01 L_02' ,sock)
         self.escreveLog('liga todas luzes')
 
-    def desligarLuzes(self):
+    def desligarCargas(self):
         for sock in self.sockets:
-            self.sendData('desliga L_01 L_02' ,sock)
+            self.sendData('desliga L_01 L_02 PR AC' ,sock)
         self.escreveLog('desliga todas luzes')
 
     def switchSistemaAlarme(self) -> bool:
@@ -95,24 +95,23 @@ class Interface:
         print('---------------------------------------------------\n\n\n')
         print(f'[0] Sistema de alarme: {self.c.sistemaAlarme}')
         print(f'[1] Ligar todas luzes')
-        print(f'[2] Desligar todas luzes')
+        print(f'[2] Desligar todas as cargas')
+        print('<ENTER> Atualizar lista de salas')
+        self.getTotalPessoas()
         print('Digite o nome da sala para escolher uma sala')
         option = input()
         if option == '0':
             if not self.c.switchSistemaAlarme():
                 self.menuInicial(False)
-            # self.c.sistemaAlarme = False if self.c.sistemaAlarme else True
-            # for sala in sockets:
-            #     if self.c.sistemaAlarme:
-            #         self.c.sendData('liga sistema alarme', sala)
-            #     else:
-            #         self.c.sendData('desliga sistema alarme', sala)
         elif option == '1':
             self.c.ligarLuzes()
         elif option == '2':
-            self.c.desligarLuzes()
+            self.c.desligarCargas()
         else:
-            self.menuSala(option)
+            try:
+                self.menuSala(option)
+            except KeyError:
+                return
 
     def menuSala(self, sala:str) -> None:
         estados = self.c.estados.copy()
@@ -132,4 +131,10 @@ class Interface:
             self.c.sendData(option, name=sala)
             self.c.escreveLog(f'{sala}: {option}')
             self.menuSala(sala)
-            
+
+    def getTotalPessoas(self):
+        estados = self.c.estados.copy()
+        total = 0
+        for sala in estados:
+            total = total + estados[sala]['pessoas']
+        print(f'Pessoas no prédio: {total}')

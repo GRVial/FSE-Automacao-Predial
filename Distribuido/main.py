@@ -6,7 +6,11 @@ def main():
     jsonFile = sys.argv[1]
     sala = Sala(jsonFile)
     conn = Conexao(sala)
-    conn.conectaCentral()
+    while conn.sock is None:
+        try:
+            conn.conectaCentral()
+        except ConnectionRefusedError:
+            pass
     conn.start()
     sala.start()
     # loop principal

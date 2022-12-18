@@ -2,7 +2,8 @@ from Central import Central, Interface
 import sys
 
 def main():
-    c = Central('192.168.1.132', 10010)
+    ip, port = sys.argv[1], sys.argv[2]
+    c = Central(ip, int(port))
     c.start()
     c.recvEstados()
     i = Interface(c)

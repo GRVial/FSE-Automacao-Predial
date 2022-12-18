@@ -111,7 +111,8 @@ class Sala(threading.Thread):
             self.temperatura, self.umidade = self.dhtDevice.temperature, self.dhtDevice.humidity
             # print(f'Temperatura: {self.temperatura:0.1f}\tUmidade: {self.umidade:0.1f}')
         except:
-            print('Erro DHT22')
+            # print('Erro DHT22')
+            pass
         return self.temperatura, self.umidade
     
     def contaPessoa(self) -> None:
@@ -163,6 +164,7 @@ class Conexao(threading.Thread):
     def __init__(self, sala:Sala) -> None:
         super().__init__()
         self.sala = sala
+        self.sock = None
 
     def conectaCentral(self):
         nome = self.sala.nome
@@ -176,7 +178,7 @@ class Conexao(threading.Thread):
         estados['temperatura'], estados['umidade'] = self.sala.getDHT22()
         estados['pessoas'] = self.sala.pessoas
         self.sock.send(json.dumps(estados).encode('utf-8'))
-        print('Estado enviado!')
+        # print('Estado enviado!')
 
     def run(self):
         while True:
