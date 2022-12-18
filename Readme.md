@@ -40,4 +40,4 @@ Em que \<config> é o arquivo de configuração da placa seguindo os exemplos do
 
 ## Vídeo
 
-<iframe width="600" height="375" src="https://www.youtube.com/embed/3YngvnBRzYY" title="Sistema predial - FSE" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+[![](https://i.ytimg.com/an_webp/3YngvnBRzYY/mqdefault_6s.webp?du=3000&sqp=CMSy_ZwG&rs=AOn4CLA112sIMtKBTV6cXcIlB1AvNP0Fng)](https://youtu.be/3YngvnBRzYY "Apresentação")
