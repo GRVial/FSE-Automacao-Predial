@@ -37,3 +37,7 @@ python3 main.py <config>
 ```
 
 Em que \<config> é o arquivo de configuração da placa seguindo os exemplos do repositório.
+
+## Vídeo
+
+<iframe width="600" height="375" src="https://www.youtube.com/embed/3YngvnBRzYY" title="Sistema predial - FSE" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
